@@ -33,7 +33,7 @@ set PATH=%MSBUILD_HOME%\Bin;%PATH%
 
 rem === Setup 'PATH' to Microsoft Visual C++
 set PATH=%MSVC_HOME%\bin;%PATH%
-call "%MSVC_HOME%\vcvarsall.bat"
+call "%MSVC_HOME%\vcvarsall.bat" x86
 
 rem === Setup 'PATH' to Instrumental Native XDS-x86 
 set PATH=%XDSDIR%\bin;%PATH%
