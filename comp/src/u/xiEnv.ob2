@@ -160,10 +160,6 @@ CONST
 VAR
   err_sum*: SET; (** errors summary *)
 
-<* IF TARGET_IDB THEN *>
-  InterViewMode* : BOOLEAN; (* =interview is used.*)
-<* END *>
-
 CONST
   (** flags in Info.decor *)
   dc_header*      = 0;  (** utility header *)
@@ -484,21 +480,6 @@ BEGIN
   IF x.col >y.col  THEN RETURN  1 END;
   RETURN 0;
 END cmp;
-
-<* IF TARGET_IDB THEN *>
-
-PROCEDURE (VAR x: TPOS) get_fid*(): INTEGER;
-BEGIN
-  RETURN x.file;
-END get_fid;
-
-PROCEDURE get_file_name*(id:INTEGER):String;
-BEGIN
- RETURN fnames[id];
-END get_file_name;
-
-<* END *>
-
 
 PROCEDURE (VAR x: TPOS) equ*(y-: TPOS): BOOLEAN;
 BEGIN

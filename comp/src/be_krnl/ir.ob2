@@ -15,10 +15,6 @@ IMPORT tune := opTune;
 IMPORT fmt := xcStr;
 IMPORT DStrings;
 
-<* IF TARGET_IDB THEN *>
-TYPE iv_wrn=PROCEDURE(p:pc.TPOS);
-VAR unreachable*:iv_wrn;
-<* END *>
 (* ---------------------------- Various types ------------------------------- *)
 
 TYPE

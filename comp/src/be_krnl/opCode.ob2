@@ -21,9 +21,6 @@ IMPORT
   opt  := Options,                            fc := CodeFace,
   nms  := ObjNames,                          reg := Registry,
   Analysis,
-<* IF TARGET_IDB THEN *>
-  RelManager,
-<* END *>
   Polymorph; -- do not remove this import!!! It is not redundant!
 <* IF TARGET_386 OR TARGET_LLVM THEN *> IMPORT xProfRTS; <* END *>
 
@@ -394,12 +391,6 @@ BEGIN
      env.info.print("\rOptimizing");
   END;
 
-<* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN
-    RETURN;
-  END;
-<* END *>
-
 <* IF gen_qfile THEN *>
   TestIO.curr_proc_name := nm;
 <* END *>
@@ -452,13 +443,6 @@ BEGIN
   WriteTest ("b", "before ConvertToSSA (b)");
   ssa.ConvertToSSA (try_block);
   WriteTest ("s", "after ConvertToSSA (s)");
-
-  <* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN
-   -- RelManager.after_convert_to_SSA();
-    RETURN;
-  END;
-  <* END *>
 
   KillDead.KillDeadCode;
   IF NOT (at.nooptimize IN at.COMP_MODE) THEN
@@ -3220,10 +3204,6 @@ BEGIN
 
   Optim_Init;
   gen_module;
-<* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN RETURN; END;
-<* END *>
-
   IF env.errors.err_cnt # 0 THEN RETURN END;
   check_objects(at.curr_mod.type.mem);
 

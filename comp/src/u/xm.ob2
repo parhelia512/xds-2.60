@@ -62,10 +62,6 @@ IMPORT
 IMPORT SYSTEM;
 IMPORT xmRTS;
 
-<* IF TARGET_IDB THEN *>
-IMPORT model2;
-<* END *>
-
 TYPE
   String = xfs.String;
   Node = POINTER TO NodeDesc;
@@ -187,9 +183,6 @@ PROCEDURE SetMode(VAR s: ARRAY OF CHAR);
 
 BEGIN
   IF    compare(s,"=PROJECT",1)   THEN set_job(pro);
-<* IF TARGET_IDB THEN *>
-  ELSIF compare(s,"=INTERVIEW",1) THEN set_job(pro); env.InterViewMode := TRUE;
-<* END *>
   ELSIF compare(s,"=MAKE",1)      THEN set_job(make);
   ELSIF compare(s,"=COMPILE",1)   THEN set_job(comp);
   ELSIF compare(s,"=BROWSE",2)    THEN set_job(sym2def);
@@ -290,11 +283,6 @@ BEGIN
   env.info.print("Usage:\n  Make project:\n" +
             "    %s =project [=batch] [=all] { PROJECTFILE | OPTION | EQUATION }\n"
             ,compiler);
-<* IF TARGET_IDB THEN *>
-  env.info.print("  Make project database:\n" +
-            "    %s =interview [=batch] [=all] { PROJECTFILE | OPTION | EQUATION }\n"
-            ,compiler);
-<* END *>
   env.info.print("  Check dependencies and recompile:\n" +
             "    %s =make [=batch] [=all] { FILENAME | OPTION | EQUATION }\n"
             ,compiler);
@@ -401,13 +389,6 @@ BEGIN
   ListFiles(curpro);
   IF (curpro.errs # 0) OR env.config.Option("__XDS_LIST__") THEN RETURN END;
 
-<* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN
-    model2.initialize(all);
-  END;
-<* END *>
-
-
   Recompile(curpro);
   IF (curpro.errs=0) & ~ batch THEN
     IF curpro.comp = 0 THEN env.errors.Message(435) END;
@@ -428,7 +409,6 @@ BEGIN
     env.info.print("\nX2C_usedmem=%d\n",xmRTS.X2C_usedmem);
 <*END *>
     env.config.Equation("LINK",a);
-    <* IF ~TARGET_IDB THEN *>
     IF (curpro.errs=0) & (a#NIL) & (a^#"") THEN
       ShowTailer;
       IF env.shell.Active() THEN env.shell.Caption ("Linking...") END;
@@ -436,17 +416,6 @@ BEGIN
       xcMain.EndProject(curpro);
       Exit;
     END;
-    <* ELSE*>
-    IF env.InterViewMode THEN model2.post(curpro); END;
-
-    IF (curpro.errs=0) & (a#NIL) & (a^#"") & (~ env.InterViewMode ) THEN
-      ShowTailer;
-      IF env.shell.Active() THEN env.shell.Caption ("Linking...") END;
-      xcF.Execute(curpro,a,TRUE);
-      xcMain.EndProject(curpro);
-      Exit;
-    END;
-    <* END *>
   END;
 END RecompileAndLink;
 

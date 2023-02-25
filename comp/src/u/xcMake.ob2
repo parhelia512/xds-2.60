@@ -405,9 +405,6 @@ EXCL(m.tags,13);
 END SetResult;
 
 (*---------------------------------------------------------------*)
-<* IF TARGET_IDB THEN *>
-
-<* END *>
 
 PROCEDURE Include(p: Project; name-: ARRAY OF CHAR;
                   mode: INTEGER; tags: SET; VAR x: File);
@@ -450,32 +447,6 @@ BEGIN
   p.last:=x;
   x.Append(p.tree);
 
- <* IF TARGET_IDB THEN *>
-  IF env.InterViewMode  THEN;
-    CASE mode OF
-      |md_def   : out(md_sym);  out(md_header);out(md_emf);
-      |md_mod   : out(md_code); out(md_emf);
-      |md_main  : out(md_code); out(md_emf);
-      |md_oberon: out(md_sym);  out(md_header);
-                  out(md_code); out(md_emf);
-      |md_sl1   : out(md_code); out(md_emf); out(md_header);
-      |md_code  : out(md_emf);
-    ELSE
-    END;
-  ELSE
-    CASE mode OF
-      |md_def   : out(md_sym);  out(md_header);
-      |md_mod   : out(md_code); out(md_obj);
-      |md_main  : out(md_code); out(md_obj);
-      |md_oberon: out(md_sym);  out(md_header);
-                  out(md_code); out(md_obj);
-      |md_sl1   : out(md_code); out(md_obj); out(md_header);
-      |md_code  : out(md_obj);
-      |md_asm   : out(md_obj);
-    ELSE
-    END;
-  END;
- <* ELSE *>
   CASE mode OF
     |md_def   : out(md_sym);  out(md_header);
     |md_mod   : out(md_code); out(md_obj);
@@ -487,7 +458,6 @@ BEGIN
     |md_asm   : out(md_obj);
   ELSE
   END;
- <* END *>
 
   ASSERT(x.name=name);
 END Include;

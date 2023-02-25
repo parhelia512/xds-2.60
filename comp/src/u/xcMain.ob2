@@ -23,9 +23,6 @@ IMPORT
   Strings,
   PFNConv,
   COMPILER,
-<* IF TARGET_IDB THEN *>
-  model2,
-<* END *>
   SYSTEM;
 
 
@@ -602,11 +599,6 @@ VAR
 PROCEDURE DoCompile;
 BEGIN
   pc.pars.compile;
-<* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN
-    model2.end_module;
-  END;
-<* END *>
 END DoCompile;
 
 PROCEDURE DoCode;
@@ -1126,14 +1118,8 @@ PROCEDURE DeclareOptions*;
 	 + "TEMPLATE;LOOKUP;ERRFMT;ERRLIM=16;PROJECT;"
 	 + "STACKLIMIT;HEAPLIMIT;GCTHRESHOLD;"
 	 + "COMPILERHEAP;COMPILERTHRES;"
-   <* IF TARGET_IDB THEN *>
-	 + "COMPILE;LINK;ERRORLEVEL;TABSTOP=1;BACKEND;"
-         + "FILE;MODULE;"
-	 + "FidStart=0;"
-   <* ELSE *>
 	 + "COMPILE;LINK;ERRORLEVEL;TABSTOP;BACKEND;"
          + "FILE;MODULE;"
-   <* END *>	
          + "ENV_HOST="+COMPILER.TARGET+";ENV_TARGET="+COMPILER.TARGET+";"
 	 ;
 

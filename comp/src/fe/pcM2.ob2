@@ -44,13 +44,6 @@ IMPORT
   DStrings,
   xfs:=xiFiles, env:=xiEnv, xcStr;
 
-<* IF TARGET_IDB THEN *>
-
-IMPORT model2;
-IMPORT IVERAS;
-
-<* END *>
-
 <* IF TARGET_TESTCOVERAGE THEN *>  IMPORT tcMain;  <* END *>
 
 CONST
@@ -1241,12 +1234,6 @@ BEGIN
   ELSIF sy=pcS.is THEN
     pcS.get(sy); type_qualident(o,FALSE); o2_type_test(e1,o,FALSE);
   END;
-  <* IF TARGET_IDB THEN*>
-    IF env.InterViewMode AND NOT (e1.mode IN pc.LVALUEs) THEN
-      e1.pos := start_pos;
-      e1.end := pcS.txtpos;
-    END;
-  <* END *>
 END Expr;
 
 (*----------------------------------------------------------------*)
@@ -2264,11 +2251,6 @@ BEGIN
   END;
 END special_varpar;
 
-<* IF TARGET_IDB THEN *>
-VAR
-  TypeUse: pc.NODE;
-<* END *>
-
 PROCEDURE proc_head(type: pc.STRUCT; this: pc.OBJECT);
   VAR
     mode : pc.OB_MODE;
@@ -2278,9 +2260,6 @@ PROCEDURE proc_head(type: pc.STRUCT; this: pc.OBJECT);
     ptr  : pc.STRUCT;
     tail : pc.OBJECT;
     start_type: pc.TPOS;
-    <* IF TARGET_IDB THEN *>
-    type_use: pc.NODE;
-    <* END *>
 BEGIN
   ASSERT(type.prof=NIL);
   IF this#NIL THEN pcO.alloc_param(this,type,tail) END;
@@ -2378,10 +2357,6 @@ BEGIN
             END;
           END
         END;
-
-        <* IF TARGET_IDB THEN *>
-        l.type_use := type_use;
-        <* END *>
         l:=l.next
       END;
       IF sy = pcS.rpar THEN EXIT END;
@@ -2433,28 +2408,9 @@ BEGIN
     start_type := pcS.txtpos;
     IF pcS.oberon THEN
       type_definition(parm,FALSE);
-      <* IF TARGET_IDB THEN *>
-        type_use := TypeUse;
-      <* END *>
     ELSE
       type_qualident(o,FALSE); parm:=o.type;
-      <* IF target_idb THEN *>
-        pcO.new(type_use, pc.nd_type);
-        type_use.pos := start_type;
-        type_use.end := pcS.txtpos;
-        type_use.obj := o;
-      <* END *>
     END;
-    <* IF TARGET_IDB THEN *>
-      IF type.obj # NIL THEN
-        IF type.obj.mode IN pc.PROCs THEN
-          type.obj.type_use := type_use;
-        ELSIF type.obj.mode = pc.ob_type THEN
-        ELSE
-          ASSERT(FALSE);
-        END;
-      END;
-    <* END *>
     IF ~ (parm.mode IN pc.code.FRETs) & (parm.mode#pcO.ty_invtype) THEN
       pcS.err(43); parm:=pcO.invtype;
     ELSIF pcS.oberon & (parm.mode IN pc.TY_SET{pc.ty_array,pc.ty_record}) & ~ pcS.ext() THEN
@@ -2710,9 +2666,6 @@ PROCEDURE type_definition(VAR t: pc.STRUCT; en_array_of: BOOLEAN);
         END;
       END;
       WHILE l#NIL DO
-        <* IF TARGET_IDB THEN *>
-          l.type_use := TypeUse;
-        <* END *>
         l.type     := t;
         l          := l.next;
       END;
@@ -3113,12 +3066,6 @@ BEGIN
    |pcS.pointer  : pointer(t)
   ELSE pcS.err(83); t:=pcO.invtype;
   END;
-  <* IF TARGET_IDB THEN *>
-    pcO.new(TypeUse, pc.nd_type);
-    TypeUse.pos := ps;
-    TypeUse.end := pcS.txtpos;
-    TypeUse.obj := o;
-  <* END *>
 END type_definition;
 
 (*----------------------------------------------------------------*)
@@ -4325,11 +4272,6 @@ BEGIN
   env.info.main:=~ (pcO.imp OR pcO.def OR pcS.oberon) OR env.config.Option("MAIN");
   IF env.errors.err_cnt#0 THEN RETURN END;
 
-<* IF TARGET_IDB THEN *>
-  IF env.InterViewMode THEN
-    model2.process_module(cu.val);
-  END;
-<* END *>
 <* IF TARGET_TESTCOVERAGE THEN *>
   tcMain.ProcessModule (cu);
 <* END *>

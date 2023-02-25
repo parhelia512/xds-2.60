@@ -84,10 +84,6 @@ IMPORT
 , pc  := pcK
 , fmt := xcStr
 , env := xiEnv
-<* IF TARGET_IDB THEN *>
-, model2
-, IVERAS
-<* END *>
 <* IF DB_TRACE THEN *>
 , dbg := pcVisIR
 <* END *>
@@ -1084,9 +1080,6 @@ BEGIN
     ) THEN
       env.errors.Warning (p, 304, o.name^);  -- "possible use before definition"
                                              -- usage pos. here: cant use WrnObj!
-  <* IF TARGET_IDB THEN *>
-      IF env.InterViewMode THEN model2.warn_at_pos(p); END;
-  <* END *>
     END;
   END;
 END ChkValue;
@@ -1095,9 +1088,6 @@ END ChkValue;
 
 PROCEDURE GetValue ( p: pc.TPOS              -- usage position
                    ; o: pc.OBJECT            -- object to get value
-<* IF TARGET_IDB THEN *>
-                   ; n : pc.NODE             -- node that will be mapped to database
-<* END *>
                    )  :           pc.VALUE;  -- value or NIL
 (**
    Get 'o's current constant value, if known, otherwise NIL.
@@ -1114,9 +1104,6 @@ BEGIN
   END;
   IF ~insideInline AND ~p.IsNull () THEN
     env.errors.Warning (p, 314, o.name^); -- "'o' has compile time defined value"
-<* IF TARGET_IDB THEN *>
-    IF env.InterViewMode THEN model2.warn_at_pos(p); END;
-<* END *>
   END;                                    -- usage pos. here, cant use WrnObj!
 
 <* IF DB_TRACE THEN *>
@@ -2083,7 +2070,7 @@ BEGIN
   , pc.sb_post_inc
   , pc.sb_post_dec:
       IF n.l.mode = pc.nd_var
-        THEN v := GetValue (n.l.pos, n.l.obj <*IF TARGET_IDB THEN *>, n <* END *> );
+        THEN v := GetValue (n.l.pos, n.l.obj);
         ELSE v := NIL;
       END;
       GenDesignator (n.l, FALSE, U_RD+U_WR);
@@ -3001,9 +2988,6 @@ BEGIN
         v.val := NIL;
       END;
       v.attr:= o.attr;
-<* IF TARGET_IDB THEN *>
-      v.pos := o.pos; v.end := o.end;
-<* END *>
       vars[vcnt] := o; INC (vcnt);
       vars[vcnt] := v; INC (vcnt);
     END;
@@ -3018,9 +3002,6 @@ BEGIN
       EXCL (v.tags, pc.otag_valpar);
       v.val := NIL;
       v.attr:= o.attr;
-<* IF TARGET_IDB THEN *>
-      v.pos := o.pos; v.end := o.end;
-<* END *>
       vars[vcnt] := o; INC (vcnt);
       vars[vcnt] := v; INC (vcnt);
       m     := NewNode (n.pos, pc.nd_assign, VoidType);
@@ -3035,9 +3016,6 @@ BEGIN
       ASSERT(o.val=NIL);
       v.val  := NIL;
       v.attr := o.attr;
-<* IF TARGET_IDB THEN *>
-      v.pos := o.pos; v.end := o.end;
-<* END *>
       vars[vcnt] := o; INC (vcnt);
       vars[vcnt] := v; INC (vcnt);
     (* ADR(parameter) *)
@@ -3472,9 +3450,6 @@ BEGIN
   |pc.nd_value:   (*3/ *)
     IF n.l.val.is_zero () THEN
       Wrn (n.pos, 315);                 -- "NIL dereference"
-<* IF TARGET_IDB THEN *>
-        IF env.InterViewMode THEN model2.nil_deref(n); END;
-<* END *>
     END;
   ELSE
 (*3/
@@ -3762,7 +3737,7 @@ BEGIN
           GenExpr(n,t);
         END;
       ELSE
-        n.val := GetValue (n.pos, n.obj<* IF TARGET_IDB THEN *>, n <* END *>);
+        n.val := GetValue (n.pos, n.obj);
         IF n.val # NIL THEN      (* Vit: maybe leave nd_var, but set .val *)
           n.mode := pc.nd_value; (*      and interpret it as value, if needed*)
           n.obj  := NIL;         (* (just a proposal to think later) *)
@@ -4215,9 +4190,6 @@ VAR ln: LOOPINF;
      & ~(pc.ntag_constrinlined IN n.tags)
     THEN
       Wrn (n.pos, 311);                -- "unreachable code"
-  <* IF TARGET_IDB THEN *>
-      IF env.InterViewMode THEN model2.warn_at_pos(n.pos); END;
-  <* END *>
     END;
     n := s;                            -- return start of new branch
   END Remove;
@@ -4413,10 +4385,6 @@ BEGIN
             END;
             IF ~ln.esc THEN
               Wrn (n.pos, 310);  -- infinite loop
-<* IF TARGET_IDB THEN *>
-    IF env.InterViewMode THEN model2.warn_at_pos(n.pos); END;
-<* END *>
-
             END;
             e := n.next;
           ELSE
@@ -4448,9 +4416,6 @@ BEGIN
       END;
       IF ~ln.esc THEN
         Wrn (n.pos, 310); -- infinite loop
-<* IF TARGET_IDB THEN *>
-    IF env.InterViewMode THEN model2.warn_at_pos(n.pos); END;
-<* END *>
       END;
       IF ln.excnt = 0 THEN
         INCL (n.tags, pc.ntag_no_exit);
@@ -5427,9 +5392,6 @@ BEGIN
     ELSE
       IF ~(pc.otag_secretvar IN o.tags) THEN
         WrnObj (o, 301);    -- param 'o' never used
-<* IF TARGET_IDB THEN *>
-        IF env.InterViewMode THEN model2.not_used(o); END;
-<* END *>
       END;
     END;
   ELSIF o.mode = pc.ob_var THEN
@@ -5437,9 +5399,6 @@ BEGIN
      & ~(pc.omark_used_by_code IN o.marks)
     THEN
       WrnObj (o, 300);    -- object 'o' never used
-<* IF TARGET_IDB THEN *>
-     IF env.InterViewMode THEN model2.not_used(o); END;
-<* END *>
       w.del := TRUE;
     END;
   ELSIF (o.mode IN pc.PROCs) THEN
