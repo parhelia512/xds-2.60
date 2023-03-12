@@ -901,6 +901,7 @@ PROCEDURE const_aggregate*(v: pc.VALUE; t: pc.STRUCT; p: INTEGER; def,cch: BOOLE
       out.ws(", ");
       INC(n);
     END gen_fld;
+    
     PROCEDURE gen_fld_seq(f: pc.OBJECT);
       VAR l: pc.NODE; w: pc.VALUE;
     BEGIN
@@ -920,11 +921,13 @@ PROCEDURE const_aggregate*(v: pc.VALUE; t: pc.STRUCT; p: INTEGER; def,cch: BOOLE
         f:=f.next;
       END;
     END gen_fld_seq;
+    
     PROCEDURE gen_level(t: pc.STRUCT);
     BEGIN
       IF t.base#NIL THEN gen_level(t.base) END;
       gen_fld_seq(t.prof);
     END gen_level;
+    
   BEGIN
     ASSERT(t.mode=pc.ty_record);
     make_temp_var(t,nm);

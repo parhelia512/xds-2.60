@@ -1220,7 +1220,7 @@ VAR tmp: STR;
       w := pc.value.new (v.pos, f.type);
       w.index_get (n, v);
       IF IsCarray (f.type) THEN
-	out.WrFmt ("%s(%s.", nms.x2c[nms.nm_memcpy]^, nm);
+        out.WrFmt ("%s(%s.", nms.x2c[nms.nm_memcpy]^, nm);
         ObjectUsage (f, fld(*=>*));
         GenFieldPath (f.ext(nms.INFO).nxt);
         out.WrFmt ("%s,", fld);
@@ -1231,7 +1231,7 @@ VAR tmp: STR;
       ELSE
         out.WrFmt ("%s.", nm);
         ObjectUsage (f, fld(*=>*));
-	GenFieldPath (f.ext (nms.INFO).nxt);
+        GenFieldPath (f.ext (nms.INFO).nxt);
         out.WrFmt ("%s = ", fld);
         GenConstAggr (w, f.type, 1, FALSE, FALSE);
       END;
@@ -1241,30 +1241,32 @@ VAR tmp: STR;
 
     -------------------------
 
-    PROCEDURE GenFldSeq ( f: pc.OBJECT );
-    (*
+    PROCEDURE GenFldSeq(f: pc.OBJECT);
+      (*
     *)
     VAR
       l: pc.NODE;
       w: pc.VALUE;
     BEGIN
       WHILE f # NIL DO
-	IF f.mode = pc.ob_header THEN
-	  ASSERT( f.val.mode = pc.nd_case );
-	  l := f.val.l;
-	  w := pc.value.new (v.pos, f.type);
-	  w.index_get (n, v);
-	  SearchRecordVariant (l(*=>*), w);
-	  ASSERT( l # NIL );
-	  IF f.val.obj # NIL
-           THEN GenFld (f.val.obj)
-           ELSE INC (n)
+        IF f.mode = pc.ob_header THEN
+          ASSERT(f.val.mode = pc.nd_case);
+          l := f.val.l;
+          w := pc.value.new(v.pos, f.type);
+          w.index_get(n, v);
+          SearchRecordVariant(l(*=>*), w);
+          ASSERT(l # NIL);
+          IF f.val.obj # NIL
+          THEN 
+            GenFld(f.val.obj)
+          ELSE 
+            INC(n)
           END;
-	  GenFldSeq (l.obj);
-	ELSE
-	  GenFld (f);
-	END;
-	f := f.next;
+          GenFldSeq(l.obj);
+        ELSE
+          GenFld(f);
+        END;
+        f := f.next;
       END;
     END GenFldSeq;
 
@@ -1294,35 +1296,39 @@ VAR tmp: STR;
   -----------------------------------------------
 
   PROCEDURE Record;
-  (*
+    (*
   *)
   VAR
     i: LONGINT;
     f: pc.OBJECT;
     w: pc.VALUE;
   BEGIN
-    IF ~IsSimpleRecord() THEN
+    IF ~IsSimpleRecord()THEN
       RecordAgg;
       RETURN
     END;
-    IF TmpIn() THEN RETURN END;
-    out.WrChr ("{");
+    IF TmpIn()THEN 
+      RETURN 
+    END;
+    out.WrChr("{");
     f := t.prof;
     IF f = NIL THEN
-      out.WrChr ('0');
+      out.WrChr('0');
     ELSE
       i := 0;
       REPEAT
-	IF i # 0 THEN out.WrChr (",") END;
-	ASSERT( f.mode # pc.ob_header );
-	w := pc.value.new (v.pos, f.type);
-	w.index_get (i, v);
-        GenConstAggr (w, f.type, 0, TRUE, FALSE);
-	INC (i);
+        IF i # 0 THEN 
+          out.WrChr(",")
+        END;
+        ASSERT(f.mode # pc.ob_header);
+        w := pc.value.new(v.pos, f.type);
+        w.index_get(i, v);
+        GenConstAggr(w, f.type, 0, TRUE, FALSE);
+        INC(i);
         f := f.next;
       UNTIL f = NIL;
     END;
-    out.WrChr ("}");
+    out.WrChr("}");
     TmpOut;
   END Record;
 

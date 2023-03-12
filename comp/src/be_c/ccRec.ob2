@@ -93,26 +93,29 @@ BEGIN
   END;
 END ParseField;
 
-PROCEDURE ParseFlist(n,b: Node; f: pc.OBJECT);
-  VAR l: pc.NODE;
+PROCEDURE ParseFlist(n, b: Node; f: pc.OBJECT);
+VAR 
+  l: pc.NODE;
 BEGIN
-  WHILE f#NIL DO
+  WHILE f # NIL DO
     IF f.mode IN pc.FIELDs THEN
-      ParseField(n,b,f);
-    ELSIF f.mode=pc.ob_header THEN
-      IF f.val.obj#NIL THEN ParseField(n,b,f.val.obj) END;
-      l:=f.val.l;
+      ParseField(n, b, f);
+    ELSIF f.mode = pc.ob_header THEN
+      IF f.val.obj # NIL THEN 
+        ParseField(n, b, f.val.obj)
+      END;
+      l := f.val.l;
       n.tie(New(m_union));
-      WHILE l#NIL DO
-        ASSERT(l.mode=pc.nd_node);
+      WHILE l # NIL DO
+        ASSERT(l.mode = pc.nd_node);
         n.last.tie(New(m_struct));
-        ParseFlist(n.last.last,b,l.obj);
-	l:=l.next;
+        ParseFlist(n.last.last, b, l.obj);
+        l := l.next;
       END;
     ELSE
       ASSERT(FALSE);
     END;
-    f:=f.next;
+    f := f.next;
   END;
 END ParseFlist;
 
