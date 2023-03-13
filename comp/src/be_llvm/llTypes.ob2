@@ -1,13 +1,13 @@
 (** Copyright (c) 1991,2023 Excelsior Ltd, Novosibirsk, Russia. All Rights Reserved. *)
-(** XDS LLVM back-end: Refletion of the source types to LLVM ones                    *)
+(** XDS LLVM back-end: Reflection of the source types to LLVM ones                   *)
 (** This module is sufficiently based on x86 back-end, esp. opDef.ob2                *)
 MODULE llTypes; (* Hady 04-Mar-2023. *)
 
 IMPORT
-  pc := pcK,
-  at := llAttrs,
-  env:= xiEnv;
-  
+  pc   := pcK,
+  at   := llAttrs,
+  env  := xiEnv,
+  tune := llTune;
   
 PROCEDURE valid_name (name: pc.STRING) : BOOLEAN;
   VAR i,ln: LONGINT; ch: CHAR;
@@ -77,35 +77,35 @@ BEGIN
       n_align := 8;
   | pc.ty_real :
       sz      := tune.real_sz;
-      n_align := tune.real_sz;
+      n_align := VAL(SHORTINT,tune.real_sz);
   | pc.ty_longreal :
       sz      := tune.longreal_sz;
-      n_align := tune.longreal_sz;
+      n_align := VAL(SHORTINT,tune.longreal_sz);
   | pc.ty_ld_real :
-      sz      := tune.IDB.ld_real_sz;
-      n_align := tune.longreal_sz;   (*!?*)
+      sz      := tune.ld_real_sz;
+      n_align := VAL(SHORTINT,tune.longreal_sz);   (* 8 bytes alignment is OK for all known platforms to the moment *)
   | pc.ty_complex :
       sz      := 2 * tune.real_sz;
-      n_align := tune.real_sz;
+      n_align := VAL(SHORTINT,tune.real_sz);
   | pc.ty_lcomplex :
       sz      := 2 * tune.longreal_sz;
-      n_align := tune.longreal_sz;
+      n_align := VAL(SHORTINT,tune.longreal_sz);
   | pc.ty_boolean, pc.ty_range, pc.ty_enum, pc.ty_protection :
       n_align := t_align;
       bytes(t.base, sz, n_align);
   | pc.ty_char :
       sz      := tune.char_sz;
-      n_align := tune.char_sz;
+      n_align := VAL(SHORTINT,tune.char_sz);
   | pc.ty_opaque, pc.ty_pointer, pc.ty_AA :
       sz      := tune.addr_sz;
-      n_align := tune.addr_sz;
+      n_align := VAL(SHORTINT,tune.addr_sz);
   | pc.ty_set :
       IF t.inx#NIL THEN
         n_align := t_align;
         bytes(t.inx, sz, n_align);
       ELSIF t.len >= tune.BITSET_LEN THEN
-        sz := ((t.len -1) DIV tune.BITSET_LEN +1)* bitset_sz;
-        n_align := bitset_sz;
+        sz := ((t.len -1) DIV tune.BITSET_LEN +1)* tune.bitset_sz;
+        n_align := VAL(SHORTINT,tune.bitset_sz);
       ELSIF t.len <= 8 THEN
         sz      := 1;
         n_align := 1;
@@ -118,7 +118,7 @@ BEGIN
       END;
   | pc.ty_proctype :
       sz      := tune.proc_sz;
-      n_align := tune.proc_sz;
+      n_align := VAL(SHORTINT,tune.proc_sz);
   | pc.ty_array :
       bytes(t.base, sz, align);
       IF sz > 0 THEN
@@ -136,10 +136,10 @@ BEGIN
       n_align := 1;
   | pc.ty_SS :
       sz      := tune.char_sz * t.len;
-      n_align := tune.char_sz;
+      n_align := VAL(SHORTINT,tune.char_sz);
   | pc.ty_process :
       sz      := tune.process_size;
-      n_align := 4;
+      n_align := VAL(SHORTINT,tune.WORD_SIZE);
   | pc.ty_array_of :
       bytes(t.base, sz, align);
       sz := -1;
@@ -318,7 +318,7 @@ PROCEDURE type_size * (t: pc.STRUCT; bySize:=TRUE: BOOLEAN): LONGINT;
 (** returns size of the given type *)
   VAR sz: LONGINT; align: SHORTINT;
 BEGIN
-  align := at.default_alignment;
+  align := tune.default_alignment;
   bytes(t, sz, align);
   RETURN sz
 END type_size;
@@ -328,12 +328,30 @@ PROCEDURE type_align * (t: pc.STRUCT; bySize:=TRUE: BOOLEAN): SHORTINT;
   VAR sz: LONGINT; t_align : SHORTINT;
 BEGIN
   t_align := t.align;
-  IF t_align = 0 THEN t_align := at.default_alignment END;
+  IF t_align = 0 THEN t_align := tune.default_alignment END;
   bytes(t, sz, t_align);
   RETURN t_align
 END type_align;
 
 (* ----- R e c o r d   D e c l a r a t i o n ---------- *)
+
+PROCEDURE set_size(t: pc.STRUCT; size: LONGINT);
+  VAR ext: at.Size;
+BEGIN
+  ASSERT(NOT (at.tmark_processed IN t.marks));
+  NEW(ext); ext.size := size;
+  at.appStructAttr(t, ext, at.a_size);
+  INCL(t.marks, at.tmark_processed);
+END set_size;
+
+PROCEDURE get_align * (t: pc.STRUCT) : SHORTINT;
+BEGIN
+  IF t.align = 0 THEN
+    RETURN tune.default_alignment
+  ELSE
+    RETURN t.align
+  END;
+END get_align;
 
 PROCEDURE declare_record(t: pc.STRUCT);
   VAR offs : LONGINT;
@@ -414,11 +432,11 @@ END makeOffsAttr;
 
 PROCEDURE obj_offset * (o: pc.OBJECT): LONGINT;
 (** returns offset of the given element inside the structure it belongs to. *) 
-  VAR a: at.at.Attr;  inf: at.Info;
+  VAR a: at.Attr;  inf: at.Info;
 BEGIN
   a := at.attr(o.ext, at.a_self);
   IF a = NIL THEN a := makeOffsAttr(o) END;
-  a(at.Info).offs;
+  RETURN a(at.Info).fOffs;
 END obj_offset;
 
 

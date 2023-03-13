@@ -321,7 +321,7 @@ TYPE
       ty_ZZ,--*          = TY_MODE{ 7 }; (** whole literal *)
       ty_real,--*        = TY_MODE{ 8 }; (** ty_longreal > ty_real, reals > ints or crds *)
       ty_longreal,--*    = TY_MODE{ 9 };
-      ty_ld_real,--*     = TY_MODE{ 10 };
+      ty_ld_real,--*     = TY_MODE{ 10 }; (** long double real (aka.LONGLONGREAL) *)
       ty_RR,--*          = TY_MODE{ 11 }; (** real literal *)
       ty_complex,--*     = TY_MODE{ 12 };
       ty_lcomplex,--*    = TY_MODE{ 13 }; (** ty_lcomplex > ty_complex > reals, ints or cards *)

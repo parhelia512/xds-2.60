@@ -5,12 +5,13 @@ MODULE llCode; (* Hady 01-Mar-2023. *)
 
 IMPORT
   pc  := pcK,
-  llt := llTypes;
+  llt := llTypes,
+  xfs := xiFiles;
 
 (* ----------------- Backend interface  ------------------- *)
 
 TYPE
-  CODE = POINTER TO RECORD (pc.code_rec) END;
+  CODE *= POINTER TO RECORD (pc.code_rec) END; (* TODO: export mark shall be deleted after all *)
 
 VAR
   code : CODE; (* back-end *)
@@ -31,21 +32,21 @@ END exi;
 
 -----------------------------------------------------------------------------
 
-PROCEDURE (c: CODE ) set_min_value*( t: STRUCT; VAR v: VALUE );
+PROCEDURE (c: CODE ) set_min_value*( t: pc.STRUCT; VAR v: pc.VALUE );
 BEGIN
 END set_min_value;
 
 -----------------------------------------------------------------------------
 
-PROCEDURE (c: CODE ) set_max_value*( t: STRUCT; VAR v: VALUE );
+PROCEDURE (c: CODE ) set_max_value*( t: pc.STRUCT; VAR v: pc.VALUE );
 BEGIN
 END set_max_value;
 
 -----------------------------------------------------------------------------
 
 
-PROCEDURE ( c: CODE ) get_size* (kind: SUB_MODE;
-                                 type: STRUCT
+PROCEDURE ( c: CODE ) get_size* (kind: pc.SUB_MODE;
+                                 type: pc.STRUCT
                                 ): LONGINT;
 (**
     Returns size of type.
@@ -54,8 +55,8 @@ PROCEDURE ( c: CODE ) get_size* (kind: SUB_MODE;
   *)
   VAR sz: LONGINT;
 BEGIN
-  sz := llt.type_size(t);
-  CASE op OF
+  sz := llt.type_size(type);
+  CASE kind OF
     |pc.su_bits : IF sz > 0 THEN sz := sz * 8 END;
     |pc.su_bytes:
     |pc.su_size :
@@ -66,8 +67,8 @@ END get_size;
 
 -----------------------------------------------------------------------------
 
-PROCEDURE (c: CODE) get_offs* ( op: SUB_MODE
-                              ;  o: OBJECT
+PROCEDURE (c: CODE) get_offs* ( op: pc.SUB_MODE
+                              ;  o: pc.OBJECT
                               )   :           LONGINT;
 (*
    Returns offset of object.
@@ -80,17 +81,17 @@ END get_offs;
 
 -----------------------------------------------------------------------------
 
-PROCEDURE ( c: CODE ) get_align* ( type: STRUCT ): SHORTINT;
+PROCEDURE ( c: CODE ) get_align* ( type: pc.STRUCT ): SHORTINT;
 (*
    Returns actual alignment of a type.
 *)
 BEGIN
-  RETURN llt.type_align(t)
+  RETURN llt.type_align(type)
 END get_align;
 
 -----------------------------------------------------------------------------
 
-PROCEDURE ( c: CODE ) allocate* (       cu: Mno
+PROCEDURE ( c: CODE ) allocate* (       cu: pc.Mno
                                 ;     main: BOOLEAN
                                 ; src_time: xfs.Time );
 (**
@@ -103,7 +104,7 @@ END allocate;
 -----------------------------------------------------------------------------
 
 PROCEDURE ( c: CODE ) out_object* ( file: xfs.SymFile
-                                  ;    o: OBJECT );
+                                  ;    o: pc.OBJECT );
 (**
     Write platform dependent object attributes to symbol file.
 *)
@@ -111,7 +112,7 @@ BEGIN ASSERT( FALSE );
 END out_object;
 
 
-PROCEDURE ( c: CODE ) clear_object* (o :OBJECT );
+PROCEDURE ( c: CODE ) clear_object* (o :pc.OBJECT );
 (**
     Clear module-specific platform-dependent object attributes
 *)
@@ -122,7 +123,7 @@ END clear_object;
 -----------------------------------------------------------------------------
 
 PROCEDURE ( c: CODE ) inp_object* ( file: xfs.SymFile
-                                  ;    o: OBJECT
+                                  ;    o: pc.OBJECT
                                   ;   id: LONGINT );
 (**
     Reads platform dependent object attributes from symbol file.
@@ -143,7 +144,7 @@ END skip_object;
 -----------------------------------------------------------------------------
 
 PROCEDURE ( c: CODE ) inp_struct* ( file: xfs.SymFile
-                                  ;    s: STRUCT
+                                  ;    s: pc.STRUCT
                                   ;   id: LONGINT );
 (**
     Reads platform dependent structure attributes from symbol file.
@@ -163,5 +164,11 @@ END skip_struct;
 
 -----------------------------------------------------------------------------
 
+PROCEDURE Set*;
 BEGIN
+  NEW(code);
+  pc.code:=code;
+  code.vers := "LLVM, v0.01";
+END Set;
+
 END llCode.
